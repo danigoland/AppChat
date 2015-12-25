@@ -7,7 +7,7 @@ function dbConnect() {
 
 function messagesInit() {
     if (!userMessages)
-        userMessages = mongoose.model('messages', {from: String, to: String, body: String, time: Date});
+        userMessages = mongoose.model('messages', {user: String, direction: String, body: String, time: Date});
     return userMessages;
 }
 
@@ -38,7 +38,7 @@ function getMessagesAll(callback) {
 
 function getMessagesHistoryByName(name, callback) {
     if (userMessages)
-        userMessages.find({$or: [{from: name}, {to: name}]}, null,
+        userMessages.find({user: name}, null,
             {sort: {date: -1}}, function (err, data) {
                 return callback(err, data);
             });

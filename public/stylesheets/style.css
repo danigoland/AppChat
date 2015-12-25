@@ -1,8 +1,38 @@
-body {
-    padding: 50px;
-    font: 14px "Lucida Grande", Helvetica, Arial, sans-serif
+a {
+    color: #55b7c5
 }
 
-a {
-    color: #00B7FF
+a:hover {
+    color: #91bec5
+}
+
+#app-container {
+    display: flex
+}
+
+.bubble {
+    padding: 5px 0 5px 0
+}
+
+.conversations {
+    width: 300px;
+    background-color: #797481
+}
+
+.chat-messages {
+    max-height: 580px;
+    display: block;
+    background-color: #e7e3ec;
+    overflow: scroll;
+    margin: 0 auto
+}
+
+.chat-window {
+    width: 1000px
+}
+
+#keyboard-container {
+    background-color: #6e6a73;
+    width: 100%;
+    padding: 5px
 }

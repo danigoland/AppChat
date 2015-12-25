@@ -1,4 +1,4 @@
-$('#msgForm').submit(function (e) {           // replacing the form submit.
+$('#form-keyboard').submit(function (e) {           // replacing the form submit.
     e.preventDefault();
     messageEmit($('#messageInput').val());
     $('#messageInput').val('');

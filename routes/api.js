@@ -1,26 +1,37 @@
 var express = require('express');
 var router = express.Router();
 var mongoose = require('mongoose');
+var db = require('../db');
 
 
-/* GET messages. */
+// GET messages.
 router.get('/messages', function (req, res, next) {
-    mongoose.model('messages').find({}, function (err, data) {
-        res.json(data);
+    db.messages.getByQuery({}, function (err, data) {
+        if (err)
+            res.send(err);
+        else
+            res.json(data);
     });
 });
 
-router.get('/messages/user/:name', function (req, res, next) {
-    var name = req.params.name;
-    mongoose.model('messages').find({$or: [{from: name}, {to: name}]}, null,
-        {sort: {date: -1}}, function (err, data) {
+// GET chats.
+router.get('/messages', function (req, res, next) {
+    db.messages.getByQuery({}, function (err, data) {
+        if (err)
+            res.send(err);
+        else
             res.json(data);
-        });
+    });
 });
 
-router.get('/messages/to/:name', function (req, res, next) {
-    mongoose.model('messages').find({from: req.params.name}, function (err, data) {
-        res.json(data);
+// GET messages by name
+router.get('/messages/user/:name', function (req, res, next) {
+    var name = req.params.name;
+    db.messages.getHistoryByName(name, function (err, data) {
+        if (err)
+            res.send(err);
+        else
+            res.json(data);
     });
 });
 
