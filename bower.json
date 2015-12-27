@@ -16,6 +16,8 @@
   ],
   "dependencies": {
     "angular": "~1.4.8",
-    "bootstrap": "~3.3.6"
+    "bootstrap": "~3.3.6",
+    "angular-scroll-glue": "~2.0.6",
+    "angular-route": "~1.4.8"
   }
 }

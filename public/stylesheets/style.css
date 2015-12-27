@@ -1,9 +1,17 @@
-a {
+body {
+    font: 12pt Helvetica, Arial, sans-serif
+}
+
+a, a:visited {
     color: #55b7c5
 }
 
 a:hover {
     color: #91bec5
+}
+
+.menu-text {
+    color: #bfc2c6
 }
 
 #app-container {
@@ -20,7 +28,7 @@ a:hover {
 }
 
 .chat-messages {
-    max-height: 580px;
+    height: 580px;
     display: block;
     background-color: #e7e3ec;
     overflow: scroll;

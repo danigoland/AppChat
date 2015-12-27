@@ -1,4 +1,4 @@
-var db = require('./db');                 // TODO Check Sockets flow.
+var db = require('./db');                 // TODO fix Overriding connections.
 var msgModel = db.messages.model();
 
 
@@ -20,6 +20,16 @@ function getClientByName(name) {
     return null;
 }
 
+function overrideSession(name) {
+    for (var i in clients) {
+        if (clients[i].name == name) {
+            return (clients.splice(i, 1)._id);
+
+        }
+    }
+    return null;
+}
+
 function getClientIndexByName(name) {
     for (var i in clients) {
         if (clients[i].name == name)
@@ -33,6 +43,9 @@ function initSockets(io) {
         console.log('Client connected to the server (' + socket.id + ')');
         socket.on("login", function (name, callback) {
             console.log(name, 'logged in.');
+            var id = overrideSession(name);
+            if (id)
+                io.sockets.connected[id].disconnect();
             clients.push(new Client(socket.id, name));
             socket.name = name;
             console.log('Online clients: ', clients);

@@ -10,30 +10,39 @@
     <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
     <script src="/javascripts/socket.io-1.3.7.js"></script>
     <script src="/javascripts/angular/angular.js"></script>
-    <script src="/javascripts/angularApp//app.js"></script>
+    <script src="/javascripts/angularApp/scrollglue.js"></script>
+    <script src="/javascripts/angularApp/angular-route.js"></script>
+    <script src="/javascripts/angularApp/app.js"></script>
+    <script src="/javascripts/angularApp/controllers.js"></script>
+    <script src="/javascripts/angularApp/directives.js"></script>
     <script src="/javascripts/scripts.js"></script>
 </head>
 <body ng-app="app">
 <div class="container">
     <h2>Chat</h2>
-    <div id="app-container" ng-controller="messageCTRL">
+    <div id="app-container" ng-controller="messagesCTRL">
         <div class="conversations">
+            <div class="bubble">
+                <a href="#/">All messages</a>
+            </div>
             <div class="bubble" ng-repeat="conversation in conversations | orderBy:'-lastMsg.time'"
                  ng-click="sendTo(conversation.user)">
-                <a href="#">{{conversation.user}} | {{conversation.lastMsg.time | date:'shortTime'}}</a>
+                <a href="#/{{conversation.user}}">{{conversation.user}} | {{conversation.lastMsg.time |
+                    date:'shortTime'}}</a>
             </div>
         </div>
         <div class="chat-window">
-            <div id="chat-messages" class="chat-messages">
-                <div id="{{message._id}}" class="bubble" ng-repeat="message in messages">
-                    ({{message.direction}}) {{message.user}}: {{message.body}} ({{message.time | date:'shortTime'}})
-                </div>
+            <div id="chat-header">
+                {{sendTo}}
+            </div>
+            <div id="chat-messages" class="chat-messages" scroll-glue ng-view>
+
             </div>
             <div id="keyboard-container">
                 <form id="form-keyboard">
                     <input id="messageInput" ng-model="messageInput" type="text">
                     <input type="submit" ng-click="sendMessage(current, messageInput)">
-                    <span class="menu-text">Sending to:</span> <a href="#">{{current}}</a>
+                    <span class="menu-text">Sending to:</span> <a href="">{{current}}</a>
                 </form>
             </div>
         </div>
