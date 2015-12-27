@@ -32,7 +32,7 @@ app.config(['$routeProvider',
             controller: 'messagesCTRL'
         }).
         when('/:user', {
-            templateUrl: 'javascripts/angularApp/partials/test.html',
+            templateUrl: 'javascripts/angularApp/partials/messages.html',
             controller: 'conversationCTRL'
         }).
         otherwise({
