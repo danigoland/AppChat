@@ -1,13 +1,35 @@
+@PrimaryColor: #55b7c5;
+@SecondaryColor: #91bec5;
+@MenuLight: #e7e3ec;
+@MenuDarker: #797481;
+@FontSize: 12pt;
+
+.container {
+  padding-top: 15px;
+}
+
 body {
-  font: 12pt Helvetica, Arial, sans-serif;
+  font: @FontSize Helvetica, Arial, sans-serif;
+}
+
+h2 {
+  margin: 0;
+  padding: 2px;
+  background-color: @MenuLight;
+  text-align: center;
 }
 
 a, a:visited {
-  color: #55b7c5;
+  color: @PrimaryColor;
 }
 
 a:hover {
-  color: #91bec5;
+  color: @SecondaryColor;
+}
+
+ol {
+  list-style: none;
+  padding: 0;
 }
 
 .menu-text {
@@ -23,26 +45,44 @@ a:hover {
 }
 
 .conversations {
-  //display: flex;
-  width: 300px;
-  background-color: #797481;
-}
-
-.chat-messages {
-  height: 580px;
-  display: block;
-  background-color: #e7e3ec;
-  overflow: scroll;
-  margin: 0 auto;
+  text-align: center;
+  max-width: 450px;
+  padding: 0 5px 0 5px;
+  background-color: @MenuDarker;
 }
 
 .chat-window {
   width: 1000px;
 }
 
+#chat-header {
+  background-color: @MenuDarker;
+  color: @PrimaryColor;
+  margin: 0;
+  padding: 6px;
+  font-size: @FontSize + 4pt;
+}
+
+#chat-header-text {
+  text-align: center;
+}
+
+.chat-messages {
+  height: 530px;
+  display: block;
+  background-color: @MenuLight;
+  overflow: scroll;
+  margin: 0 auto;
+}
+
 #keyboard-container {
+  text-align: center;
   background-color: #6e6a73;
   width: 100%;
   padding: 5px;
+  input[type="text"] {
+    width: 500px;
+  }
 
 }
+

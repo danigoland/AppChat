@@ -43,3 +43,34 @@ function printMessage(msg) {
     newMessage.innerText = '(' + dir + ') ' + msg.body;
     output.appendChild(newMessage);
 }
+
+// ------------- IS TYPING -------- //
+
+var typing = false;
+var timeout = undefined;
+
+function timeoutFunction() {
+    typing = false;
+    socket.emit("userTyping", false);
+    console.log('stopped typing');
+}
+
+$("#messageInput").keydown(function (e) {
+    if (e.which !== 13) {
+        if (typing === false && $("#messageInput").is(":focus")) {
+            typing = true;
+            socket.emit("userTyping", true);
+            console.log('typing..');
+            clearTimeout(timeout);
+            timeout = setTimeout(timeoutFunction, 3000);
+        } else {
+            clearTimeout(timeout);
+            timeout = setTimeout(timeoutFunction, 3000);
+        }
+    }
+    else {
+        clearTimeout();
+        typing = false;
+        socket.emit('userTyping', false);
+    }
+});

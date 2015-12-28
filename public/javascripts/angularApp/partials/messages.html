@@ -1,3 +1,8 @@
-<div id="{{message._id}}" class="bubble" ng-repeat="message in messages | filter:{user:user}">
-    ({{message.direction}}) {{message.user}}: {{message.body}} ({{message.time | date:'shortTime'}})
-</div>
+<ol>
+    <li ng-repeat="message in messages | filter:{user:user}" ng-class="(message.dir=='out') ? 'selected' : ''">
+        <div id="{{message._id}}" class="bubble">
+            <span>({{message.direction}})</span> <span>{{message.user}}</span>: <span>{{message.body}}</span>
+            <span dir>({{message.time | date:'shortTime'}})</span>
+        </div>
+    </li>
+</ol>

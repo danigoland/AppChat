@@ -15,7 +15,6 @@
     <script src="/javascripts/angularApp/app.js"></script>
     <script src="/javascripts/angularApp/controllers.js"></script>
     <script src="/javascripts/angularApp/directives.js"></script>
-    <script src="/javascripts/scripts.js"></script>
 </head>
 <body ng-app="app">
 <div class="container">
@@ -28,12 +27,15 @@
             <div class="bubble" ng-repeat="conversation in conversations | orderBy:'-lastMsg.time'"
                  ng-click="sendTo(conversation.user)">
                 <a href="#/{{conversation.user}}">{{conversation.user}} | {{conversation.lastMsg.time |
-                    date:'shortTime'}}</a>
+                    date:'shortTime'}} | {{conversation.isTyping}}</a>
             </div>
         </div>
         <div class="chat-window">
             <div id="chat-header">
-                {{sendTo}}
+                <div id="chat-header-text">
+                    {{current}}
+                    <!--<small><span>is writing..</span></small>-->
+                </div>
             </div>
             <div id="chat-messages" class="chat-messages" scroll-glue ng-view>
 
@@ -42,7 +44,6 @@
                 <form id="form-keyboard">
                     <input id="messageInput" ng-model="messageInput" type="text">
                     <input type="submit" ng-click="sendMessage(current, messageInput)">
-                    <span class="menu-text">Sending to:</span> <a href="">{{current}}</a>
                 </form>
             </div>
         </div>

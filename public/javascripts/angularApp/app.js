@@ -28,7 +28,7 @@ app.config(['$routeProvider',
     function ($routeProvider) {
         $routeProvider.
         when('/', {
-            templateUrl: 'javascripts/angularApp/partials/conversation.html',
+            templateUrl: 'javascripts/angularApp/partials/messages.html',
             controller: 'messagesCTRL'
         }).
         when('/:user', {
