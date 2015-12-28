@@ -7,10 +7,9 @@ if (user)
         for (var i in history)
             printMessage(history[i]);
     });
+
 socket.on("message", function (msg) {
     printMessage(msg)
-
-
 });
 
 function messageEmit(msg) {

@@ -19,7 +19,7 @@
 <body ng-app="app">
 <div class="container">
     <h2>Chat</h2>
-    <div id="app-container" ng-controller="messagesCTRL">
+    <div id="app-container" ng-controller="mainCTRL">
         <div class="conversations">
             <div class="bubble">
                 <a href="#/">All messages</a>
@@ -27,17 +27,11 @@
             <div class="bubble" ng-repeat="conversation in conversations | orderBy:'-lastMsg.time'"
                  ng-click="sendTo(conversation.user)">
                 <a href="#/{{conversation.user}}">{{conversation.user}} | {{conversation.lastMsg.time |
-                    date:'shortTime'}} | {{conversation.isTyping}}</a>
+                    date:'shortTime'}}<span ng-show="conversation.isTyping"> | is typing..</span></a>
             </div>
         </div>
         <div class="chat-window">
-            <div id="chat-header">
-                <div id="chat-header-text">
-                    {{current}}
-                    <!--<small><span>is writing..</span></small>-->
-                </div>
-            </div>
-            <div id="chat-messages" class="chat-messages" scroll-glue ng-view>
+            <div class="chat-container" ng-view>
 
             </div>
             <div id="keyboard-container">

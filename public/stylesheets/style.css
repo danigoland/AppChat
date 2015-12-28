@@ -46,7 +46,8 @@ ol {
 }
 
 .chat-window {
-    width: 1000px
+    min-width: 900px;
+    width: 100%
 }
 
 #chat-header {

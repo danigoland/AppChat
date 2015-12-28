@@ -20,18 +20,14 @@ function getClientByName(name) {
     return null;
 }
 
-function overrideSession(name, io) {
-    console.log('Overriding', name, 'session..');
+function getClientsByName(name, callback) {
+    var sockets = [];
     for (var i in clients) {
         if (clients[i].name == name) {
-            var poppedId = clients.splice(i, 1);
-            console.log(poppedId);
-            //io.sockets.connected[poppedId].disconnect();
-            console.log('connection found at | index:', i, 'id:', poppedId, '| terminating..');
-
+            sockets.push(clients.splice(i, 1));
         }
     }
-    return null;
+    return callback(sockets);
 }
 
 function getClientIndexByName(name) {
@@ -47,9 +43,14 @@ function initSockets(io) {
         console.log('Client connected to the server (' + socket.id + ')');
         socket.on("login", function (name, callback) {
             console.log(name, 'logged in.');
-            overrideSession(name, io);
-            clients.push(new Client(socket.id, name));
+            //getClientsByName(name, function(clients){
+            //    for (var i in clients){
+            //        if (clients[i].id !== socket.id)
+            //         io.sockets.connected[clients.id].disconnect();
+            //    }
+            //});
             socket.name = name;
+            clients.push(new Client(socket.id, name));
             console.log('Online clients: ', clients);
             if (name !== 'System') {
                 socket.emit('message', {body: 'Welcome!'});
@@ -84,11 +85,11 @@ function initSockets(io) {
                     io.to(client.id).emit('message', Message)
             });
             socket.on("userTyping", function (data) {
-                console.log(socket.id, 'is typing', data);
+                console.log(socket.name, 'is typing', data);
                 var client = getClientByName('System');
                 console.log(client);
                 if (client) {
-                    io.to(client.id).emit('typing', {isTyping: data, id: socket.id});
+                    io.to(client.id).emit('typing', {isTyping: data, name: socket.name});
                     console.log('emitted typing to', client.id)
 
                 }

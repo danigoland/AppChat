@@ -1,6 +1,32 @@
 var appControllers = angular.module('appControllers', ['luegg.directives']);
 
-appControllers.controller('messagesCTRL', ['$scope', '$http', 'socket', function ($scope, $http, socket) {
+appControllers.controller('mainCTRL', ['$scope', '$http', 'socket', function ($scope, $http, socket) {
+    $scope.conversations = [];
+    $scope.messages = [];
+
+    socket.emit('login', 'System', function () {
+    });
+
+    socket.on('message', function (msg, id) {
+        console.log(msg, id);
+        loadMessage(msg, id);
+    });
+
+    socket.on('typing', function (data) {
+
+        console.log(data.name, 'is typing..', data.isTyping);
+        var index = getClientIndexByName(data.name);
+        if (index) {
+            console.log('index', $scope.conversations[index].isTyping);
+            $scope.conversations[index].isTyping = data.isTyping;
+            console.log('index', $scope.conversations[index].isTyping);
+        }
+    });
+
+    socket.on('disconnect', function () {
+        alert('disconnect');
+    });
+
 
     function Conversation(id, user, lastMsg) {
         this.id = id;
@@ -10,11 +36,11 @@ appControllers.controller('messagesCTRL', ['$scope', '$http', 'socket', function
 
     }  // conv obj constructor.
 
-    function getClientIndexById(id) {
+    function getClientIndexByName(name) {
         for (var i in $scope.conversations) {
-            console.log('GCBN - id:', id);
+            console.log('GCBN - name:', name);
             console.log('GCBN - checking:', $scope.conversations[i]);
-            if ($scope.conversations[i].id == id) {
+            if ($scope.conversations[i].user == name) {
                 console.log('GCBN - Found:', i, '(index)');
                 return i;
             }
@@ -38,32 +64,10 @@ appControllers.controller('messagesCTRL', ['$scope', '$http', 'socket', function
 
     $http.get('/api/messages')
         .success(function (messages) {
-            $scope.conversations = [];
-            $scope.messages = [];
             for (var i in messages) {
                 loadMessage(messages[i]);
             }
         });
-
-    socket.emit('login', 'System', function () {
-    });
-
-    socket.on('message', function (msg, id) {
-        console.log(msg, id);
-        loadMessage(msg, id);
-    });
-
-    socket.on('typing', function (data) {
-
-        console.log(data.id, 'is typing..', data.isTyping);
-        var index = getClientIndexById(data.id);
-        if (index)
-            index.isTyping = data.isTyping;
-    });
-
-    socket.on('disconnect', function () {
-        alert('disconnect');
-    });
 
 
     $scope.sendMessage = function (user, body) {
@@ -90,11 +94,12 @@ appControllers.controller('conversationCTRL', ['$scope', '$routeParams',
     function ($scope, $routeParams) {
         var isExist = false;
         for (var i in $scope.conversations) {
-            if ($scope.conversations[i].user == $routeParams.user)
+            if ($scope.conversations[i].user == $routeParams.user) {
+                $scope.currentUser = $scope.conversations[i];
                 isExist = true;
+            }
         }
         if (!isExist)
             window.location = '#/';
         $scope.user = $routeParams.user;
-        $scope.current = $routeParams.user;
     }]);

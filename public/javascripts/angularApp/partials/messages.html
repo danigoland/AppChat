@@ -1,7 +1,12 @@
-<ol>
+<div id="chat-header">
+    <div id="chat-header-text">
+        {{currentUser.user}}<span ng-show="currentUser.isTyping"> is typing..</span>
+    </div>
+</div>
+<ol id="chat-messages" class="chat-messages chat-window" scroll-glue>
     <li ng-repeat="message in messages | filter:{user:user}" ng-class="(message.dir=='out') ? 'selected' : ''">
         <div id="{{message._id}}" class="bubble">
-            <span>({{message.direction}})</span> <span>{{message.user}}</span>: <span>{{message.body}}</span>
+            <span>({{message.direction}})</span> <span dir="ltr">{{message.user}}</span>: <span>{{message.body}}</span>
             <span dir>({{message.time | date:'shortTime'}})</span>
         </div>
     </li>

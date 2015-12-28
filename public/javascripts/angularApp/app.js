@@ -2,6 +2,7 @@ var app = angular.module("app", ['appControllers', 'appDirectives', 'ngRoute']);
 
 app.factory('socket', function ($rootScope) {
     var socket = io.connect(window.location.hostname + ':8081');
+    console.dir(socket);
     return {
         on: function (eventName, callback) {
             socket.on(eventName, function () {
@@ -28,8 +29,7 @@ app.config(['$routeProvider',
     function ($routeProvider) {
         $routeProvider.
         when('/', {
-            templateUrl: 'javascripts/angularApp/partials/messages.html',
-            controller: 'messagesCTRL'
+            templateUrl: 'javascripts/angularApp/partials/messages.html'
         }).
         when('/:user', {
             templateUrl: 'javascripts/angularApp/partials/messages.html',
