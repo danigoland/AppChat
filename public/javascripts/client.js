@@ -13,11 +13,8 @@ socket.on("message", function (msg) {
 });
 
 function messageEmit(msg) {
-    socket.emit('userMessage', msg, function (err) {
-        if (err)
-            console.log(err);
-        else
-            console.log('Message sent.');
+    socket.emit('userMessage', msg, function (msg) {
+        printMessage(msg);
     });
 }
 

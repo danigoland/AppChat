@@ -75,13 +75,13 @@ function initSockets(io) {
             else
                 callback();
             socket.on("userMessage", function (msg, callback) {
-                callback(null);
                 var Message = new msgModel({user: name, direction: 'in', body: msg, time: Date.now()});   // Creating new instance of msg model.
                 db.messages.save(Message, function (err) {                                            // and saving it to the db
                     if (err)
                         console.log(err);
                     console.log('message wrote to db');
                 });
+                callback(Message);
                 console.log(name + ': ' + msg);
                 var system = getSystemClients();
                 for (var i in system)
