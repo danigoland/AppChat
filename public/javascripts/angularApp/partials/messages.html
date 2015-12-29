@@ -1,6 +1,7 @@
 <div id="chat-header">
     <div id="chat-header-text">
-        {{currentUser.user}}<span ng-show="currentUser.isTyping"> is typing..</span>
+        <span>{{(currentUser.user.length > -1) ? currentUser.user : 'All message'}}</span><span
+            ng-show="currentUser.isTyping"> is typing..</span>
     </div>
 </div>
 <ol id="chat-messages" class="chat-messages chat-window" scroll-glue>
