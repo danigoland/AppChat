@@ -1,4 +1,4 @@
-var db = require('./db');                 // TODO fix Overriding connections.
+var db = require('./db');                 // TODO fix Overriding connections.  systemTyping
 var msgModel = db.messages.model();
 
 
@@ -38,6 +38,20 @@ function getClientIndexByName(name) {
     return -1;
 }
 
+function getSystemClients() {
+    console.log('GSC - Looking for System clients');
+    var sysClients = [];
+    for (var i in clients) {
+        console.log('GSC - checking:', clients[i]);
+        if (clients[i].name == 'System') {
+            console.log('GSC - Found:', i, '(index)');
+            sysClients.push(clients[i]);
+        }
+    }
+    console.log('Returning System Clients');
+    return sysClients;
+}
+
 function initSockets(io) {
     io.on("connection", function (socket) {
         console.log('Client connected to the server (' + socket.id + ')');
@@ -69,9 +83,9 @@ function initSockets(io) {
                     console.log('message wrote to db');
                 });
                 console.log(name + ': ' + msg);
-                var client = getClientByName('System');
-                if (client)
-                    io.to(client.id).emit('message', Message, socket.id)
+                var system = getSystemClients();
+                for (var i in system)
+                    io.to(system[i].id).emit('message', Message, socket.id)
             });
             socket.on("systemMessage", function (data, callback) {
                 callback();
@@ -86,11 +100,11 @@ function initSockets(io) {
             });
             socket.on("userTyping", function (data) {
                 console.log(socket.name, 'is typing', data);
-                var client = getClientByName('System');
-                console.log(client);
-                if (client) {
-                    io.to(client.id).emit('typing', {isTyping: data, name: socket.name});
-                    console.log('emitted typing to', client.id)
+                var system = getSystemClients();
+                console.log(system);
+                for (var i in system) {
+                    io.to(system[i].id).emit('typing', {isTyping: data, name: socket.name});
+                    console.log('emitted typing to', system[i].id)
 
                 }
             });

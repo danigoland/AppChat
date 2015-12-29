@@ -51,7 +51,7 @@ var timeout = undefined;
 function timeoutFunction() {
     typing = false;
     socket.emit("userTyping", false);
-    console.log('stopped typing');
+    console.log('stopped typing', new Date().toLocaleTimeString());
 }
 
 $("#messageInput").keydown(function (e) {
@@ -59,7 +59,7 @@ $("#messageInput").keydown(function (e) {
         if (typing === false && $("#messageInput").is(":focus")) {
             typing = true;
             socket.emit("userTyping", true);
-            console.log('typing..');
+            console.log('typing..', new Date().toLocaleTimeString());
             clearTimeout(timeout);
             timeout = setTimeout(timeoutFunction, 3000);
         } else {
@@ -68,7 +68,8 @@ $("#messageInput").keydown(function (e) {
         }
     }
     else {
-        clearTimeout();
+        clearTimeout(timeout);
+        console.log('stopped typing', new Date().toLocaleTimeString());
         typing = false;
         socket.emit('userTyping', false);
     }
