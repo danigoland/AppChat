@@ -5,7 +5,7 @@
     </div>
 </div>
 <ol id="chat-messages" class="chat-messages chat-window" scroll-glue>
-    <li ng-repeat="message in messages | filter:{user:user}" ng-class="(message.dir=='out') ? 'selected' : ''">
+    <li ng-repeat="message in messages | filter:{user:user} : true" ng-class="(message.dir=='out') ? 'selected' : ''">
         <div id="{{message._id}}" class="bubble">
             <span>({{message.direction}})</span> <span dir="ltr">{{message.user}}</span>: <span>{{message.body}}</span>
             <span dir>({{message.time | date:'shortTime'}})</span>
