@@ -87,6 +87,7 @@ function initSockets(io) {
                 for (var i in system)
                     io.to(system[i].id).emit('message', Message, socket.id)
             });
+
             socket.on("systemMessage", function (data, callback) {
                 callback();
                 var Message = new msgModel({user: data.user, direction: 'out', body: data.body, time: Date.now()});   // Creating new instance of msg model.
@@ -96,7 +97,11 @@ function initSockets(io) {
                 });
                 var client = getClientByName(data.user);
                 if (client)
-                    io.to(client.id).emit('message', Message)
+                    io.to(client.id).emit('message', Message);
+                var system = getSystemClients();
+                for (var i in system)
+                    io.to(system[i].id).emit('message', Message, socket.id)
+
             });
             socket.on("userTyping", function (data) {
                 console.log(socket.name, 'is typing', data);

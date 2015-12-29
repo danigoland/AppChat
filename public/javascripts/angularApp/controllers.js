@@ -77,8 +77,9 @@ appControllers.controller('mainCTRL', ['$scope', '$http', 'socket', function ($s
                 var time = new Date().toISOString();
                 var msg = {user: user, direction: 'out', body: body, time: time};
                 socket.emit("systemMessage", msg, function (err) {
-                    if (!err)
-                        loadMessage(msg);
+                    if (err)
+                        console.log('err sending message');
+                    consoloe.log(err);
                 });
             }
     };
