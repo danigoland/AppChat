@@ -1,7 +1,7 @@
 var app = angular.module("app", ['appControllers', 'appDirectives', 'ngRoute']);  // TODO: Auto-scroll down
 
 app.factory('socket', function ($rootScope) {
-    var socket = io.connect(window.location.hostname + ':8081');
+    var socket = io.connect(window.location.hostname + ':3333');
     console.dir(socket);
     return {
         on: function (eventName, callback) {

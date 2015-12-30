@@ -11,10 +11,6 @@ var api = require('./routes/api');
 
 
 var app = require('express')();
-var io = require('socket.io')(app.server);
-var sockets = require("./serverSockets");  // Server Sockets
-
-sockets.initSockets(io);
 
 db.connect();
 var msgModel = db.messages.init(); // initialize  the messages and returns its model.

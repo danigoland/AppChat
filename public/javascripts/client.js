@@ -1,4 +1,4 @@
-var socket = io.connect(window.location.hostname + ":8081");
+var socket = io.connect(window.location.hostname + ":3333");
 var user = window.prompt("Enter user");
 document.getElementById('Name').innerText = user;
 
