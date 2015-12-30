@@ -1,6 +1,7 @@
 var appControllers = angular.module('appControllers', ['luegg.directives']);
 
 appControllers.controller('mainCTRL', ['$scope', '$http', 'socket', function ($scope, $http, socket) {
+    $scope.search = '';
     $scope.conversations = [];
     $scope.messages = [];
 

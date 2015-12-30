@@ -24,6 +24,9 @@
             <div class="bubble">
                 <a href="#/">All messages</a>
             </div>
+            <div>
+                <input type="search" ng-model="search">
+            </div>
             <div class="bubble" ng-repeat="conversation in conversations | orderBy:'-lastMsg.time'"
                  ng-click="sendTo(conversation.user)">
                 <a href="#/{{conversation.user}}">{{conversation.user}} | {{conversation.lastMsg.time |
