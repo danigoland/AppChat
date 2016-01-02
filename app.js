@@ -13,8 +13,8 @@ var api = require('./routes/api');
 var app = require('express')();
 
 db.connect();
-var msgModel = db.messages.init(); // initialize  the messages and returns its model.
-
+var msgModel = db.messages.init(); // initialize and returns the models.
+var usrModel = db.users.init();
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hjs');

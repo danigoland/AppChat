@@ -1,33 +1,25 @@
-var db = require('./db');                 // TODO fix Overriding connections.  systemTyping
+var db = require('./db');
 var msgModel = db.messages.model();
+var usrModel = db.users.model();
 
 
 var clients = [];
-function Client(id, name) {
+function Client(socketId, id, name) {
+    this.socketId = socketId;
     this.id = id;
     this.name = name;
 }
 
-function getClientByName(name) {
+function getClientById(id) {
     for (var i in clients) {
-        console.log('GCBN - name:', name);
+        console.log('GCBN - i:', id);
         console.log('GCBN - checking:', clients[i]);
-        if (clients[i].name == name) {
+        if (clients[i].id == id) {
             console.log('GCBN - Found:', i, '(index)');
             return clients[i];
         }
     }
     return null;
-}
-
-function getClientsByName(name, callback) {
-    var sockets = [];
-    for (var i in clients) {
-        if (clients[i].name == name) {
-            sockets.push(clients.splice(i, 1));
-        }
-    }
-    return callback(sockets);
 }
 
 function getClientIndexByName(name) {
@@ -39,12 +31,9 @@ function getClientIndexByName(name) {
 }
 
 function getSystemClients() {
-    console.log('GSC - Looking for System clients');
     var sysClients = [];
     for (var i in clients) {
-        console.log('GSC - checking:', clients[i]);
         if (clients[i].name == 'System') {
-            console.log('GSC - Found:', i, '(index)');
             sysClients.push(clients[i]);
         }
     }
@@ -55,67 +44,142 @@ function getSystemClients() {
 function initSockets(io) {
     io.on("connection", function (socket) {
         console.log('Client connected to the server (' + socket.id + ')');
-        socket.on("login", function (name, callback) {
-            console.log(name, 'logged in.');
-            //getClientsByName(name, function(clients){
-            //    for (var i in clients){
-            //        if (clients[i].id !== socket.id)
-            //         io.sockets.connected[clients.id].disconnect();
-            //    }
-            //});
-            socket.name = name;
-            clients.push(new Client(socket.id, name));
-            console.log('Online clients: ', clients);
-            if (name !== 'System') {
-                socket.emit('message', {body: 'Welcome!'});
-                db.messages.getHistoryByName(name, function (err, data) {    // calling back the chat  history
-                    callback(data);
+        socket.on("login", function (data, callback) {
+            console.log('data recived', data);
+            if (data)
+            if (data.name !== null || data.name !== undefined) {
+                var typing = false;
+                var timeout = undefined;
+                if (data.name !== 'System') {
+                    var User = new usrModel({
+                        name: data.name, deviceModel: data.deviceModel,
+                        androidVersion: data.androidVersion
+                    });
+                    db.users.save(User, function (err, userId) {
+                        if (err) {
+                            console.log('error saving user to db:', err);
+                            socket.disconnect();
+                        }
+                        socket.name = data.name;
+                        socket.userId = userId;
+                        clients.push(new Client(socket.id, userId, data.name));
+                        console.log(data.name, 'logged in.');
+                        console.log('Online clients: ', clients);
+                        socket.emit('message', {direction: 'out', body: 'Welcome!'});
+                        db.messages.getHistoryById(socket.userId, function (err, data) {    // calling back the chat  history
+                            callback(data);
+                        });
+                    });
+
+                }
+                else {
+                    clients.push(new Client(socket.id, undefined, data.name));
+                    socket.name = 'System';
+                    console.log(data.name, 'logged in.');
+                    console.log('Online clients: ', clients);
+                    callback();
+                }
+                socket.on("userMessage", function (msg, callback) {
+                    var Message = new msgModel({user: socket.userId, direction: 'in', body: msg, time: Date.now()});   // Creating new instance of msg model.
+                    console.log('-- New Message:', Message);
+                    db.messages.save(Message, function (err, msgId) {                                               // and saving it to the db
+                        if (err)
+                            console.log(err);
+                        else
+                            db.users.updateLastMsg(Message.user, msgId, function (err) {
+                                if (err)
+                                    console.log(err);
+                            });
+                    });
+                    callback(Message);
+                    console.log(data.name + ': ' + msg);
+                    var system = getSystemClients();
+                    for (var i in system) {
+                        io.to(system[i].socketId).emit('message', Message);
+                        console.log('emitted message to', system[i]);
+                    }
+                });
+
+                socket.on("systemMessage", function (data, callback) {
+                    callback();
+                    var Message = new msgModel({user: data.user, direction: 'out', body: data.body, time: Date.now()});   // Creating new instance of msg model.
+                    db.messages.save(Message, function (err, msgId) {                                                           // and saving it to the db
+                        if (err)
+                            console.log(err);
+                        else
+                            db.users.updateLastMsg(Message.user, msgId, function (err) {
+                                if (err)
+                                    console.log(err);
+                            });
+                    });
+                    var client = getClientById(data.user);
+                    console.log('---', client, data.user);
+                    if (client)
+                        io.to(client.socketId).emit('message', Message);
+                    var system = getSystemClients();
+                    for (var i in system)
+                        io.to(system[i].socketId).emit('message', Message, socket.id)
+
+                });
+
+                socket.on("userTyping", function (data) {
+                    function emitTyping() {
+                        //console.log(socket.name, 'is typing', typing);
+                        var system = getSystemClients();
+                        for (var i in system) {
+                            io.to(system[i].socketId).emit('typing', {isTyping: typing, id: socket.userId});
+                            console.log('emitted typing to', system[i])
+                        }
+                    }
+
+                    if (data) {
+                        if (typing === false) {
+                            typing = true;
+                            emitTyping();
+                        }
+                        clearTimeout(timeout);
+                        timeout = setTimeout(function () {
+                            typing = false;
+                            emitTyping();
+                        }, 3000);
+                    }
+                    else {
+                        typing = false;
+                        clearTimeout(timeout);
+                        emitTyping();
+                    }
+                });
+
+                socket.on("systemTyping", function (data) {
+                    console.log(socket.name, 'is typing to', data.to, data.state);
+                    var client = getClientById(data.to);
+                    if (client) {
+                        console.log('emitted typing to', client);
+                        io.to(client.socketId).emit('sysTyping', data.state);
+                        console.log('emitted typing to', client.socketId);
+                    }
+                });
+
+                socket.on('messageIsRead', function (id) {
+                    console.log('message', id, 'is read');
+                    db.messages.hasRead(id, function (err) {
+                        if (err)
+                            throw err;
+                        else {
+                            var system = getSystemClients();
+                            for (var i in system) {
+                                io.to(system[i].socketId).emit('messageChangedToRead', id);
+                            }
+                        }
+
+                    });
                 });
             }
             else
-                callback();
-            socket.on("userMessage", function (msg, callback) {
-                var Message = new msgModel({user: name, direction: 'in', body: msg, time: Date.now()});   // Creating new instance of msg model.
-                db.messages.save(Message, function (err) {                                            // and saving it to the db
-                    if (err)
-                        console.log(err);
-                    console.log('message wrote to db');
-                });
-                callback(Message);
-                console.log(name + ': ' + msg);
-                var system = getSystemClients();
-                for (var i in system)
-                    io.to(system[i].id).emit('message', Message, socket.id)
-            });
-
-            socket.on("systemMessage", function (data, callback) {
-                callback();
-                var Message = new msgModel({user: data.user, direction: 'out', body: data.body, time: Date.now()});   // Creating new instance of msg model.
-                db.messages.save(Message, function (err) {                                            // and saving it to the db
-                    if (err)
-                        console.log(err);
-                });
-                var client = getClientByName(data.user);
-                if (client)
-                    io.to(client.id).emit('message', Message);
-                var system = getSystemClients();
-                for (var i in system)
-                    io.to(system[i].id).emit('message', Message, socket.id)
-
-            });
-            socket.on("userTyping", function (data) {
-                console.log(socket.name, 'is typing', data);
-                var system = getSystemClients();
-                console.log(system);
-                for (var i in system) {
-                    io.to(system[i].id).emit('typing', {isTyping: data, name: socket.name});
-                    console.log('emitted typing to', system[i].id)
-
-                }
-            });
+                socket.disconnect();
         });
-        socket.on('disconnect', function () {
-            console.log('Client disconnected to the server (' + socket.id + ')');
+        socket.on('disconnect', function (reason) {
+            console.log('Client disconnected to the server (' + socket.id + ')[' + reason + ']');
             socket.emit('disconnected');
             if (socket.name) {
                 var clientIndex = getClientIndexByName(socket.name);

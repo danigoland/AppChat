@@ -1,107 +1,233 @@
-var appControllers = angular.module('appControllers', ['luegg.directives']);
+var appControllers = angular.module('appControllers', ['luegg.directives', 'angular-inview']);
 
-appControllers.controller('mainCTRL', ['$scope', '$http', 'socket', function ($scope, $http, socket) {
-    $scope.search = '';
+function Conversation(id, name, androidVersion, deviceModel, lastMsg, unreadMsgs) {
+    this.id = id;
+    this.name = name;
+    this.androidVer = androidVersion;
+    this.deviceModel = deviceModel;
+    this.lastMsg = lastMsg;
+    this.unreadMessages = unreadMsgs;
+    this.isTyping = false;
+
+}  // conv obj constructor.
+
+appControllers.controller('mainCTRL', ['$scope', '$http', 'socket', 'currentConversation', function ($scope, $http, socket, currentConversation) {
+
+    function updateLastMessage(msg, current) {
+        var exist = false;
+        console.log('updating..');
+        var convs = $scope.conversations;
+        for (var i in convs) {
+            if (convs[i].id == msg.user) {
+                convs[i].lastMsg = msg;
+                exist = true;
+                console.log('current?', current);
+                if (current == false) {
+                    console.log('asd');
+                    convs[i].unreadMessages.push({_id: msg._id, body: msg.body});
+                }
+            }
+        }
+        if (!exist)
+            $http.get('/api/users/' + msg.user)
+                .success(function (users) {
+                    var user = users[0];
+                    console.log('the user isnt in the convs');
+                    $scope.conversations.push(new Conversation(user._id, user.name, user.androidVersion,
+                        user.deviceModel, user.lastMessage, user.unreadMessages));
+                });
+    }
+
+    $scope.searchUser = '';
     $scope.conversations = [];
     $scope.messages = [];
+    $scope.messageInput = 'test';
 
-    socket.emit('login', 'System', function () {
+    socket.emit('login', {name: 'System'}, function () {
     });
 
-    socket.on('message', function (msg, id) {
-        console.log(msg, id);
-        loadMessage(msg, id);
+    socket.on('message', function (msg) {
+        var current = currentConversation.getCurrent();
+        if (current)
+            if (msg.user == current.id) {
+                updateLastMessage(msg, true);
+                msg.userName = current.name;
+                $scope.messages.push(msg);
+            }
+            else
+                updateLastMessage(msg, false);
+        else
+            updateLastMessage(msg, false);
+
     });
 
-    socket.on('typing', function (data) {
-
-        console.log(data.name, 'is typing..', data.isTyping);
-        var index = getClientIndexByName(data.name);
-        if (index) {
-            console.log('index', $scope.conversations[index].isTyping);
-            $scope.conversations[index].isTyping = data.isTyping;
-            console.log('index', $scope.conversations[index].isTyping);
+    socket.on('messageChangedToRead', function (id) {
+        console.log(id);
+        var convs = $scope.conversations;
+        var msgs = $scope.messages;
+        for (var i in convs) {
+            for (var j in convs[i].unreadMessages) {
+                console.log(convs[i].unreadMessages[j], j);
+                if (convs[i].unreadMessages[j]._id == id) {
+                    convs[i].unreadMessages.splice(j, 1);
+                }
+            }
+        }
+        for (var i in msgs) {
+            if (msgs[i]._id == id)
+                $scope.messages[i].read = true;
         }
     });
 
-    socket.on('disconnect', function () {
-        alert('disconnect');
+    socket.on('typing', function (data) {
+        console.log(data.id, 'is typing..', data.isTyping);
+        var index = getClientIndexById(data.id);
+        console.log(index);
+        if (index)
+            $scope.conversations[index].isTyping = data.isTyping;
     });
 
+    socket.on('disconnect', function (reason) {
+        console.log('socket disconnected. reason -', reason);
+    });
 
-    function Conversation(id, user, lastMsg) {
-        this.id = id;
-        this.user = user;
-        this.lastMsg = lastMsg;
-        this.isTyping = false;
-
-    }  // conv obj constructor.
-
-    function getClientIndexByName(name) {
+    function getClientIndexById(id) {
         for (var i in $scope.conversations) {
-            console.log('GCBN - name:', name);
-            console.log('GCBN - checking:', $scope.conversations[i]);
-            if ($scope.conversations[i].user == name) {
-                console.log('GCBN - Found:', i, '(index)');
+            if ($scope.conversations[i].id == id) {
                 return i;
             }
         }
     }
 
-    function loadMessage(msg, id) {
-        $scope.messages.push(msg);
-        var exist = false;
-        for (var j in $scope.conversations) {
-            if (msg.user == $scope.conversations[j].user) {
-                exist = true;
-                $scope.conversations[j].id = id;
-                $scope.conversations[j].lastMsg = msg;
+    $http.get('/api/users')
+        .success(function (users) {
+            for (var i in users) {
+                var user = users[i];
+                $scope.conversations.push(new Conversation(user._id, user.name, user.androidVersion,
+                    user.deviceModel, user.lastMessage, user.unreadMessages));
             }
-        }
-        if (exist == false) {
-            $scope.conversations.push(new Conversation(id, msg.user, msg));
-        }
-    }
-
-    $http.get('/api/messages')
-        .success(function (messages) {
-            for (var i in messages) {
-                loadMessage(messages[i]);
-            }
+            $scope.currentUser = '';
         });
+    //
+    //$http.get('/api/messages')
+    //    .success(function (messages) {
+    //        for (var i in messages) {
+    //            loadMessage(messages[i]);
+    //        }
+    //    });
 
 
-    $scope.sendMessage = function (user, body) {
-        if ((user) && (body))
-            if (body.length > 0 && user.length > 0) {
-                $scope.messageInput = '';
-                var time = new Date().toISOString();
-                var msg = {user: user, direction: 'out', body: body, time: time};
-                socket.emit("systemMessage", msg, function (err) {
-                    if (err)
-                        console.log('err sending message');
-                    consoloe.log(err);
-                });
-            }
-    };
-
-    $scope.sendTo = function (name) {
-        $scope.current = name;
+    $scope.changeUser = function () {
+        //$scope.current = name;
         $('#messageInput').focus();
+        $scope.searchUser = '';
     }
 
 }]);
 
-appControllers.controller('conversationCTRL', ['$scope', '$routeParams',
-    function ($scope, $routeParams) {
+appControllers.controller('conversationCTRL', ['$scope', '$routeParams', '$http', 'socket', 'currentConversation',
+    function ($scope, $routeParams, $http, socket, currentConversation) {
+        document.title = "Angular App";
         var isExist = false;
         for (var i in $scope.conversations) {
-            if ($scope.conversations[i].user == $routeParams.user) {
-                $scope.currentUser = $scope.conversations[i];
+            if ($scope.conversations[i].name == $routeParams.user) {
+                if ($routeParams.user)
+                    document.title = "Angular App - " + $scope.conversations[i].name;
                 isExist = true;
+                $scope.$parent.currentUser = $scope.conversations[i];
+                //console.log($scope.conversations[i]);
+                currentConversation.setCurrent($scope.$parent.currentUser);
+                $http.get('/api/messages/' + $scope.$parent.currentUser.id)
+                    .success(function (msgs) {
+                        $scope.$parent.messages = [];
+                        for (var i in msgs) {
+                            var msg = msgs[i];
+                            msg.userName = $routeParams.user;
+                            $scope.$parent.messages.push(msg);
+                        }
+                    });
+
             }
         }
-        if (!isExist)
-            window.location = '#/';
+
+        if (!isExist) {
+            topConversation = $scope.currentConvView[0];
+            if (topConversation)
+                window.location = '#/' + topConversation.name;
+        }
         $scope.user = $routeParams.user;
+
+        $scope.MessageIsViewed = function ($event, $inview) {
+            var viewed;
+            //console.log('Working on', $event.inViewTarget);
+            var childNum = $event.inViewTarget.children.length;
+            //console.log('children', childNum);
+            if (childNum == 1)
+                viewed = $event.inViewTarget.children[0].children[0];
+            if (childNum == 2)
+                viewed = $event.inViewTarget.children[1].children[0];
+
+            if (viewed) {
+                var readStatus = (viewed.attributes.getNamedItem('read').value === 'true');
+                //console.log('Message Viewed | Id:', viewed.id, '| Status:', readStatus);
+                if (readStatus == false)
+                    socket.emit('messageIsRead', viewed.id);
+            }
+        }
     }]);
+
+appControllers.controller('keyboardCTRL', ['$scope', 'socket', 'currentConversation', function ($scope, socket, currentConversation) {
+    $scope.messageInput = '';
+    $scope.sendMessage = function (body) {
+        var user = currentConversation.getCurrent().id;
+        console.log(user, body);
+        if ((user) && (body))
+            if (body.length > 0 && user.length > 0) {
+                $scope.messageInput = '';
+                console.log($scope.messageInput);
+                var time = new Date().toISOString();
+                var msg = {user: user, direction: 'out', body: body, time: time};
+                console.log(msg);
+                socket.emit("systemMessage", msg, function (err) {
+                    if (err)
+                        console.log('err sending message');
+                    console.log(err);
+                });
+            }
+    };
+
+    var typingTo = undefined;
+    var typing = false;
+    var timeout = undefined;
+
+    function timeoutFunction() {
+        typing = false;
+        socket.emit("systemTyping", {to: typingTo, state: false});
+        //console.log('stopped typing to', typingTo , new Date().toLocaleTimeString());
+    }
+
+    $scope.isTyping = function (e) {
+        typingTo = currentConversation.getCurrent().id;
+        if (typingTo != undefined) {
+            if (e.which !== 13) {
+                if (typing === false && $("#messageInput").is(":focus")) {
+                    typing = true;
+                    socket.emit("systemTyping", {to: typingTo, state: true});
+                    //console.log('typing..' ,typingTo , new Date().toLocaleTimeString());
+                    clearTimeout(timeout);
+                    timeout = setTimeout(timeoutFunction, 3000);
+                } else {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(timeoutFunction, 3000);
+                }
+            }
+            else {
+                clearTimeout(timeout);
+                console.log('stopped typing', new Date().toLocaleTimeString());
+                typing = false;
+                socket.emit('systemTyping', {to: typingTo, state: false});
+            }
+        }
+    };
+
+}]);

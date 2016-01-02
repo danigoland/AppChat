@@ -1,13 +1,19 @@
 var mongoose = require("mongoose");
 var userMessages;
+var users;
 
 function dbConnect() {
     mongoose.connect('mongodb://localhost/AppChatDB');
 }
 
+/** Message Model */
+
 function messagesInit() {
     if (!userMessages)
-        userMessages = mongoose.model('messages', {user: String, direction: String, body: String, time: Date});
+        userMessages = mongoose.model('messages', {
+            user: {type: mongoose.Schema.ObjectId, ref: 'users', required: true},
+            direction: String, body: String, time: Date, read: {type: Boolean, default: false}
+        });
     return userMessages;
 }
 
@@ -19,8 +25,8 @@ function getMessageModel() {
 }
 
 function getMessagesByQuery(query, callback) {
-    if (userMessages)
-        userMessages.find(query, function (err, data) {
+    if (userMessages)      // .populate('user')
+        userMessages.find(query).sort('time').exec(function (err, data) {
             return callback(err, data);
         });
     else
@@ -29,16 +35,7 @@ function getMessagesByQuery(query, callback) {
 
 function getMessagesAll(callback) {
     if (userMessages)
-        userMessages.find(function (err, data) {
-            return callback(err, data);
-        });
-    else
-        return callback("the Messages  model didn't initiated");
-}
-
-function getMessagesHistoryByName(name, callback) {
-    if (userMessages)
-        userMessages.find({user: name}, null,
+        userMessages.find({}, null,
             {sort: {date: -1}}, function (err, data) {
                 return callback(err, data);
             });
@@ -46,13 +43,147 @@ function getMessagesHistoryByName(name, callback) {
         return callback("the Messages  model didn't initiated");
 }
 
-function saveMessage(msg, callback) {
-    msg.save(function (err) {
+function getMessagesHistoryById(id, callback) {
+    if (userMessages)
+        userMessages.find({user: id}).sort('time').exec(function (err, data) {
+            if (err)
+                console.log(err);
+            return callback(err, data);
+        });
+    else
+        return callback("the Messages  model didn't initiated");
+}
+
+function saveMessage(message, callback) {
+    message.save(function (err, msg) {
         if (err) // ...
             callback(err);
         else
-            callback();
+            addMessageToUserUnread(msg, function (err) {
+                if (err)
+                    callback(err, msg._id);
+                else
+                    callback(null, msg._id);
+            });
     });
+
+}
+
+function messageIsRead(id, callback) {
+    userMessages.findOneAndUpdate({_id: id}, {read: true}, function (err, data) {
+        if (err) // ...
+            callback(err);
+        else
+            callback(null);
+    });
+}
+
+/** User Model */
+
+function usersInit() {
+    if (!users)
+        users = mongoose.model('users', {
+            name: {type: String, required: true},
+            androidVersion: String,
+            deviceModel: String,
+            lastMessage: {type: mongoose.Schema.ObjectId, ref: 'messages'},
+            unreadMessages: [{type: mongoose.Schema.ObjectId, ref: 'messages'}]
+
+        });
+    return users;
+}
+
+function getUsersModel() {
+    if (!users)
+        return usersInit();
+    else
+        return users;
+}
+
+function getUsersAll(callback) {
+    if (users)
+        users.find({lastMessage: {$ne: null}}).sort('time').populate('lastMessage')
+            .populate({
+                path: 'unreadMessages',
+                match: {'read': false},
+                select: '_id + body'
+            })
+            .exec(function (err, data) {
+            return callback(err, data);
+        });
+    else
+        return callback("the user model didn't initiated");
+}
+
+function saveUser(usr, callback) {
+    var userData = usr.toObject();
+    console.log(userData);
+    delete userData.unreadMessages;
+    delete userData._id;
+    console.log(userData);
+    users.findOneAndUpdate({name: usr.name}, userData, {upsert: true, new: true}, function (err, doc) {
+        if (err) // ...
+            callback(err, doc._id);
+        else
+            callback(null, doc._id);
+    });
+}
+
+function updateUserLastMessage(id, msgId, callback) {
+    users.findOneAndUpdate({_id: id}, {lastMessage: msgId}, {upsert: true}, function (err, data) {
+        if (err) // ...
+            callback(err);
+        else
+            callback(null);
+    });
+}
+
+function addMessageToUserUnread(msg, callback) {
+    users.findByIdAndUpdate(
+        msg.user,
+        {$push: {"unreadMessages": msg._id}},
+        {upsert: true, new: true},
+        function (err, model) {
+            callback(err);
+        }
+    );
+}
+
+function getUserByName(name, callback) {
+    if (users)
+        users.find({name: name}).populate('lastMessage').exec(function (err, data) {
+            if (err)
+                callback(err, data);
+            return callback(err, data);
+        });
+    else
+        return callback("the user model didn't initiated");
+}
+
+function getUsersByQuery(query, callback) {
+    if (users)
+        users.find(query).populate('lastMessage')
+            .populate({
+                path: 'unreadMessages',
+                match: {'read': false},
+                select: '_id + body'
+            }).exec(function (err, data) {
+            if (err)
+                callback(err, data);
+            return callback(err, data);
+        });
+    else
+        return callback("the user model didn't initiated");
+}
+
+function getUnreadMessagesOfUser(id, callback) {
+    console.log('asd');
+    if (userMessages)
+        userMessages.find({user: id, read: false}).exec(function (err, data) {
+            return callback(err, data.length);
+        });
+    else
+        return callback("the Messages  model didn't initiated");
 }
 
 module.exports = {
@@ -61,8 +192,19 @@ module.exports = {
         init: messagesInit,
         getAll: getMessagesAll,
         getByQuery: getMessagesByQuery,
-        getHistoryByName: getMessagesHistoryByName,
+        getHistoryById: getMessagesHistoryById,
         save: saveMessage,
-        model: getMessageModel
+        model: getMessageModel,
+        hasRead: messageIsRead
+    },
+    users: {
+        init: usersInit,
+        model: getUsersModel,
+        getAll: getUsersAll,
+        save: saveUser,
+        updateLastMsg: updateUserLastMessage,
+        getByName: getUserByName,
+        getByQuery: getUsersByQuery,
+        getUnread: getUnreadMessagesOfUser
     }
 };

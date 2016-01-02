@@ -2,7 +2,10 @@
 @SecondaryColor: #91bec5;
 @MenuLight: #e7e3ec;
 @MenuDarker: #797481;
+@MenuTextColor: #A6A6A7;
+@HighlightConvColor: #858690;
 @FontSize: 12pt;
+@AppBorderSize: 10px;
 
 .container {
   padding-top: 15px;
@@ -12,28 +15,128 @@ body, a {
   font: @FontSize Helvetica, Arial, sans-serif;
 }
 
-h2 {
+textarea, input {
+  outline: none;
+  border-radius: 5px;
+  resize: none;
+}
+
+.keyboard-message-input-container {
+  display: inline-block;
+  background-color: white;
+  padding: 3px;
+  border-radius: 5px;
+  textarea {
+    border: none;
+    width: 500px;
+    &::-webkit-scrollbar {
+      width: 5px; // manage scrollbar width here
+    }
+
+    &::-webkit-scrollbar * {
+      background: transparent; // manage scrollbar background color here
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.3) !important; // manage scrollbar thumb background color here
+    }
+  }
+}
+
+#keyboard-send {
+  vertical-align: top;
+  margin-top: 1px;
+}
+
+input[type=search] {
+  -webkit-transition: all 0.30s ease-in-out;
+  background-color: transparent;
+  border: none;
+  color: @MenuTextColor;
+  &:focus {
+    color: @PrimaryColor;
+  }
+  &::-webkit-input-placeholder {
+    -webkit-transition: all 0.30s ease-in-out;
+  }
+  &:focus::-webkit-input-placeholder {
+    color: @PrimaryColor;
+  }
+}
+
+.top-bar {
   margin: 0;
   padding: 2px;
   background-color: @MenuLight;
   text-align: center;
+  border-top-left-radius: @AppBorderSize;
+  border-top-right-radius: @AppBorderSize;
 }
 
-a, a:visited {
+a, a:visited, a:hover, a:active, a:link {
   color: @PrimaryColor;
 }
 
-a:hover {
-  color: @SecondaryColor;
+//a:hover a:active {
+//  color: @SecondaryColor;
+//}
+
+hr {
+  border-top: 1px solid rgba(0, 0, 0, 0.2);
+  margin: 5px 0;
 }
 
 ol {
   list-style: none;
   padding: 0;
+  border-radius: 10px;
+}
+
+ol::-webkit-scrollbar {
+  width: 5px; // manage scrollbar width here
+}
+
+ol::-webkit-scrollbar * {
+  background: transparent; // manage scrollbar background color here
+}
+
+ol::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.3) !important; // manage scrollbar thumb background color here
+}
+
+.message-container {
+  display: flex;
+  padding: 5px 0 5px 0;
+
+}
+
+.message-container-system {
+  justify-content: center;
+}
+
+.message-container-in {
+  justify-content: flex-end;
+}
+
+.message-data {
+  white-space: pre;
+  text-align: center;
+  margin-bottom: 5px;
+}
+
+.message-time {
+  font-size: 8pt;
+  display: block;
+  float: right;
 }
 
 .menu-text {
   color: #bfc2c6;
+}
+
+#messages-container {
+  background-color: @MenuDarker;
+  padding-right: 10px;
 }
 
 #app-container {
@@ -41,7 +144,49 @@ ol {
 }
 
 .bubble {
-  padding: 5px 0 5px 0;
+  max-width: 700px;
+  word-break: break-word;
+  padding: 6px 10px;
+  margin: 0 10px 0 10px;
+  border-radius: 8px;
+}
+
+.bubble-system {
+  background-color: #88D1DC;
+  padding: 5px 20px 5px 20px;
+  margin: 0 10px 0 10px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+}
+
+.conversation {
+  position: relative;
+  max-width: 250px;
+  overflow: hidden;
+  padding: 5px;
+}
+
+.conversation-divide {
+  margin: 0;
+}
+
+.conversation-current {
+  background-color: @HighlightConvColor;
+}
+
+.conversation-unread {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  background-color: @PrimaryColor;
+  color: @MenuDarker;
+  padding: 3px;
+  min-width: 20px;
+  border-radius: 30px;
+  margin: 5px;
+  font-size: 9pt;
+  font-weight: bold;
 }
 
 .conversations {
@@ -49,8 +194,56 @@ ol {
   float: left;
   white-space: nowrap;
   max-width: 450px;
-  padding: 0 5px 0 5px;
+  padding: 0 0 0 5px;
   background-color: @MenuDarker;
+  border-bottom-left-radius: @AppBorderSize;
+}
+
+#conversations-title {
+  text-align: center;
+  color: @PrimaryColor;
+}
+
+#conversations-container {
+  height: 502px;
+  overflow: hidden;
+  overflow-y: scroll;
+  &::-webkit-scrollbar {
+    width: 5px; // manage scrollbar width here
+  }
+
+  &::-webkit-scrollbar * {
+    background: transparent; // manage scrollbar background color here
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.3) !important; // manage scrollbar thumb background color here
+  }
+}
+
+.conversation-time {
+  font-size: 8pt;
+  display: block;
+  margin-bottom: 5px;
+  opacity: 0.7;
+}
+
+.conversation-name {
+  font-size: 13pt;
+  display: block;
+  margin: 5px 0;
+}
+
+.conversation-body {
+  font-size: 10pt;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  padding: 0 25px;
+  color: #424242;
+}
+
+.division-line {
+  margin: 0;
 }
 
 .chat-window {
@@ -59,32 +252,58 @@ ol {
 
 #chat-header {
   background-color: @MenuDarker;
-  color: @PrimaryColor;
   margin: 0;
   padding: 6px;
-  font-size: @FontSize + 4pt;
 }
 
-#chat-header-text {
+.chat-header-title {
   text-align: center;
+  color: @PrimaryColor;
+  font-size: @FontSize + 4pt;
+
+}
+
+#chat-header-meta {
+  div {
+    display: inline-block;
+    float: right;
+    margin: 4px;
+    color: @MenuTextColor;
+  }
+}
+
+#search-user {
+  margin-bottom: 5px;
 }
 
 .chat-messages {
-  height: 530px;
+  height: 500px;
   display: block;
   background-color: @MenuLight;
-  overflow: scroll;
+  overflow-y: scroll;
   margin: 0 auto;
 }
 
 #keyboard-container {
   text-align: center;
-  background-color: #6e6a73;
+  background-color: @MenuDarker;
   width: 100%;
   padding: 10px;
-  input[type="text"] {
-    width: 500px;
-  }
+  border-bottom-right-radius: @AppBorderSize;
+  max-height: 200px;
+}
 
+.in {
+  background-color: gray;
+  .message-time {
+    float: right;
+  }
+}
+
+.out {
+  .message-time {
+    float: left;
+  }
+  background-color: @PrimaryColor;
 }
 

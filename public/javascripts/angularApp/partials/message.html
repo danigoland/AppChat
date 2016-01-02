@@ -1,0 +1,15 @@
+<li class="message-container message-container-system"
+    ng-if="(message.time | date:'dd')!==($parent.filteredMessages[$index-1].time | date:'dd')">
+    <div class="bubble-system">{{message.time | date:'dd/MM/yy'}}
+        </div></li>
+<li ng-class="(message.direction=='out') ? 'message-container message-container-in' :
+         'message-container message-container-out'">
+    <div id="{{message._id}}" class="bubble {{message.direction}}" read="{{message.read}}">
+        <div>
+            <div dir="auto" class="message-data">{{message.body}}</div>
+        </div>
+        <!--<span dir="ltr">{{message.userName}}</span>: -->
+        <div>
+            <div class="message-time">{{message.time | date:'HH:mm'}}</div>
+        </div>
+        </div></li>

@@ -2,7 +2,6 @@ var app = angular.module("app", ['appControllers', 'appDirectives', 'ngRoute']);
 
 app.factory('socket', function ($rootScope) {
     var socket = io.connect(window.location.hostname + ':3333');
-    console.dir(socket);
     return {
         on: function (eventName, callback) {
             socket.on(eventName, function () {
@@ -25,14 +24,27 @@ app.factory('socket', function ($rootScope) {
     };
 });  // Socket Service.
 
+app.factory('currentConversation', function ($rootScope) {
+    var current = undefined;
+    return {
+        setCurrent: function (name) {
+            current = name;
+        },
+        getCurrent: function () {
+            return current;
+        }
+    };
+});
+
 app.config(['$routeProvider',
     function ($routeProvider) {
         $routeProvider.
         when('/', {
-            templateUrl: 'javascripts/angularApp/partials/messages.html'
+            templateUrl: 'javascripts/angularApp/partials/conversation.html',
+            controller: 'conversationCTRL'
         }).
         when('/:user', {
-            templateUrl: 'javascripts/angularApp/partials/messages.html',
+            templateUrl: 'javascripts/angularApp/partials/conversation.html',
             controller: 'conversationCTRL'
         }).
         otherwise({

@@ -1,18 +1,19 @@
 var appDirectives = angular.module('appDirectives', []);
 
-appDirectives.directive('autoFocus', function () {
-    return {
-        restrict: 'A',
+appDirectives.directive('message', function(){
+return {
+restrict: 'E',
+transclude: true,
+scope: { message:'=messageData', $index:'=messageIndex' },
+	templateUrl: 'javascripts/angularApp/partials/message.html'
 
-        template: function (scope, element, attrs) {
-            console.log(scope, element, attrs);
-            scope.$watch(function () {
-                return scope.$eval(attrs.autoFocus);
-            }, function (newValue) {
-                if (newValue == true) {
-                    element[0].focus();
-                }
-            });
-        }
-    };
+}
+});
+
+appDirectives.directive('conversations', function () {
+	return {
+		restrict: 'E',
+		transclude: true,
+		templateUrl: 'javascripts/angularApp/partials/conversations.html'
+	}
 });

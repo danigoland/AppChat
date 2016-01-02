@@ -1,0 +1,17 @@
+<div id="chat-header">
+    <div class="chat-header-title">
+        <span>{{(currentUser.name.length > -1) ? currentUser.name : 'All message'}}</span>
+        <span ng-if="currentUser.isTyping"> is typing..</span>
+    </div>
+    <div id="chat-header-meta">
+        <input type="search" ng-model="search" placeholder="Search in conversation..">
+        <div ng-if="currentUser.androidVer">Android version: <span>{{currentUser.androidVer}}</span></div>
+        <div ng-if="currentUser.deviceModel">Device model: <span>{{currentUser.deviceModel}}</span></div>
+    </div>
+</div>
+<div id="messages-container">
+    <ol id="chat-messages" class="chat-messages chat-window" scroll-glue in-view-container>
+        <message ng-repeat="message in (filteredMessages=(messages | filter:search))" message-data="message"
+                 message-index="$index" in-view="MessageIsViewed($event, $inview)"></message>
+    </ol>
+</div>
