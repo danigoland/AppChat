@@ -18,15 +18,13 @@
     <script src="/javascripts/angularApp/app.js"></script>
     <script src="/javascripts/angularApp/controllers.js"></script>
     <script src="/javascripts/angularApp/directives.js"></script>
+    <script src="/javascripts/angularApp/scripts.js"></script>
 </head>
 <body ng-app="app">
 <div class="container">
     <h2 class="top-bar">Chat</h2>
     <div id="app-container" ng-controller="mainCTRL">
         <div class="conversations">
-            <div class="bubble">
-                <a href="#/" id="conversations-title">All Conversations</a>
-            </div>
             <div id="search-container">
                 <input type="search" id="search-user" ng-model="searchUser" placeholder="search..">
             </div>
@@ -40,14 +38,12 @@
             <div id="chat-container" ng-view>
 
             </div>
-            <div id="keyboard-container" ng-controller="keyboardCTRL">
-                <form id="form-keyboard">
+            <div id="keyboard-container" ng-controller="keyboardCTRL" keyboard>
                     <div class="keyboard-message-input-container">
                         <textarea dir="auto" id="keyboard-message-input" ng-model="messageInput"
-                                  ng-keydown="isTyping($event, current)"></textarea>
+                                  ng-keydown="keyboardHandler($event, current)"></textarea>
                     </div>
                     <input id="keyboard-send" type="submit" ng-click="sendMessage(messageInput)">
-                </form>
             </div>
         </div>
     </div>

@@ -26,7 +26,11 @@
               }
               return scope.$evalAsync((function(_this) {
                 return function() {
-                  $event.inViewTarget = element[0];
+                  if (element[0].children.length > 1)
+                    $event.inViewTarget = element[0].children[1].children[0];
+                  else
+                    $event.inViewTarget = element[0].children[0].children[0];
+                  console.log($event.inViewTarget);
                   return inViewFunc(scope, {
                     '$event': $event,
                     '$inview': $inview,

@@ -45,8 +45,9 @@ function initSockets(io) {
     io.on("connection", function (socket) {
         console.log('Client connected to the server (' + socket.id + ')');
         socket.on("login", function (data, callback) {
-            console.log('data recived', data);
-            if (data)
+            if ((typeof data) == "string")
+            data = JSON.parse(data);
+            console.log('data recived', typeof data);
             if (data.name !== null || data.name !== undefined) {
                 var typing = false;
                 var timeout = undefined;

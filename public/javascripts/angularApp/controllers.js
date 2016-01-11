@@ -158,15 +158,7 @@ appControllers.controller('conversationCTRL', ['$scope', '$routeParams', '$http'
         $scope.user = $routeParams.user;
 
         $scope.MessageIsViewed = function ($event, $inview) {
-            var viewed;
-            //console.log('Working on', $event.inViewTarget);
-            var childNum = $event.inViewTarget.children.length;
-            //console.log('children', childNum);
-            if (childNum == 1)
-                viewed = $event.inViewTarget.children[0].children[0];
-            if (childNum == 2)
-                viewed = $event.inViewTarget.children[1].children[0];
-
+            var viewed = $event.inViewTarget;
             if (viewed) {
                 var readStatus = (viewed.attributes.getNamedItem('read').value === 'true');
                 //console.log('Message Viewed | Id:', viewed.id, '| Status:', readStatus);
@@ -203,17 +195,18 @@ appControllers.controller('keyboardCTRL', ['$scope', 'socket', 'currentConversat
     function timeoutFunction() {
         typing = false;
         socket.emit("systemTyping", {to: typingTo, state: false});
-        //console.log('stopped typing to', typingTo , new Date().toLocaleTimeString());
+        console.log('stopped typing to', typingTo, new Date().toLocaleTimeString());
     }
 
-    $scope.isTyping = function (e) {
+    $scope.keyboardHandler = function (e) {
+        if (currentConversation.getCurrent())
         typingTo = currentConversation.getCurrent().id;
-        if (typingTo != undefined) {
-            if (e.which !== 13) {
-                if (typing === false && $("#messageInput").is(":focus")) {
+        if (typingTo) {
+            if (e.which !== 13 || !e.shiftKey) {
+                if (typing === false && $("#keyboard-message-input").is(":focus")) {
                     typing = true;
                     socket.emit("systemTyping", {to: typingTo, state: true});
-                    //console.log('typing..' ,typingTo , new Date().toLocaleTimeString());
+                    console.log('typing..', typingTo, new Date().toLocaleTimeString());
                     clearTimeout(timeout);
                     timeout = setTimeout(timeoutFunction, 3000);
                 } else {
@@ -222,6 +215,8 @@ appControllers.controller('keyboardCTRL', ['$scope', 'socket', 'currentConversat
                 }
             }
             else {
+                e.preventDefault();
+                $scope.sendMessage($scope.messageInput);
                 clearTimeout(timeout);
                 console.log('stopped typing', new Date().toLocaleTimeString());
                 typing = false;
