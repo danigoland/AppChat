@@ -30,7 +30,7 @@
                     $event.inViewTarget = element[0].children[1].children[0];
                   else
                     $event.inViewTarget = element[0].children[0].children[0];
-                  console.log($event.inViewTarget);
+                  //console.log($event.inViewTarget);
                   return inViewFunc(scope, {
                     '$event': $event,
                     '$inview': $inview,
