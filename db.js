@@ -206,7 +206,12 @@ function getUnreadMessagesOfUser(id, callback) {
 function deleteUserAndMessages(id, callback) {
     if (users)
         users.find({_id: id}).remove().exec(function (err, data) {
-
+            if (!err)
+                deleteMessagesOfUser(id, function (err) {
+                    callback(err);
+                });
+            else
+                callback(err)
         });
     else
         return callback("the users  model didn't initiated");

@@ -131,11 +131,18 @@ appControllers.controller('conversationsCTRL', ['$scope', '$http', 'socket', fun
             });
         }],
         null, // Dividier
-        ['Delete', function ($itemScope, $event) {
+        ['Delete', function ($itemScope) {
             var name = $itemScope.conversation.name;
+            var id = $itemScope.conversation.id;
             if (confirm('Are you sure you want to permanently delete ' + name + '? (cannot undo)')) {
-                var index = findConvByName(name);
-                $scope.$parent.conversations.splice(index, 1);
+                socket.emit('deleteUser', id, function (err) {
+                    if (err)
+                        console.log("couldn't delete user:", err);
+                    else {
+                        var index = findConvByName(name);
+                        $scope.$parent.conversations.splice(index, 1);
+                    }
+                });
             }
         }]
     ];

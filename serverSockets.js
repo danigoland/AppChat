@@ -207,6 +207,16 @@ function initSockets(io) {
                     });
                 });
 
+                socket.on("deleteUser", function (id, callback) {
+                    db.users.delete(id, function (err) {
+                        if (err)
+                            callback(err);
+                        else
+                            callback(null);
+                    });
+                });
+
+
 
             }
             else
