@@ -3,7 +3,7 @@
      ng-class="(currentUser.name == conversation.name) ? 'conversation-current conversation' : 'conversation'">
     <div class="conversation-time">{{conversation.lastMsg.time | date:'HH:mm'}}</div>
         <span class="conversation-name">{{conversation.name}}</span>
-        <span ng-if="conversation.isTyping"> | is typing..</span>
+        <span ng-if="conversation.isTyping"> is typing..</span>
     <div dir="auto" class="conversation-body">{{conversation.lastMsg.body}}</div>
     <div ng-if="conversation.unreadMessages.length > 0" class="conversation-unread">
         {{conversation.unreadMessages.length}}
