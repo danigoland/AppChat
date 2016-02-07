@@ -78,6 +78,14 @@ function messageIsRead(id, callback) {
     });
 }
 
+function deleteMessagesOfUser(id, callback) {
+    if (userMessages)
+        userMessages.find({user: id}).remove().exec(function (err, data) {
+            callback(err);
+        });
+    else
+        return callback("the Messages  model didn't initiated");
+}
 /** User Model */
 
 function usersInit() {
@@ -87,8 +95,8 @@ function usersInit() {
             androidVersion: String,
             deviceModel: String,
             lastMessage: {type: mongoose.Schema.ObjectId, ref: 'messages'},
-            unreadMessages: [{type: mongoose.Schema.ObjectId, ref: 'messages'}]
-
+            unreadMessages: [{type: mongoose.Schema.ObjectId, ref: 'messages'}],
+            archived: {type: Boolean, default: false}
         });
     return users;
 }
@@ -138,6 +146,15 @@ function updateUserLastMessage(id, msgId, callback) {
     });
 }
 
+function updateUserArchive(id, status, callback) {
+    users.findOneAndUpdate({_id: id}, {archived: status}, {upsert: true}, function (err, data) {
+        if (err) // ...
+            callback(err);
+        else
+            callback(null);
+    });
+}
+
 function addMessageToUserUnread(msg, callback) {
     users.findByIdAndUpdate(
         msg.user,
@@ -170,6 +187,7 @@ function getUsersByQuery(query, callback) {
             }).exec(function (err, data) {
             if (err)
                 callback(err, data);
+            else
             return callback(err, data);
         });
     else
@@ -177,13 +195,22 @@ function getUsersByQuery(query, callback) {
 }
 
 function getUnreadMessagesOfUser(id, callback) {
-    console.log('asd');
     if (userMessages)
         userMessages.find({user: id, read: false}).exec(function (err, data) {
             return callback(err, data.length);
         });
     else
         return callback("the Messages  model didn't initiated");
+}
+
+function deleteUserAndMessages(id, callback) {
+    if (users)
+        users.find({_id: id}).remove().exec(function (err, data) {
+
+        });
+    else
+        return callback("the users  model didn't initiated");
+
 }
 
 module.exports = {
@@ -202,7 +229,9 @@ module.exports = {
         model: getUsersModel,
         getAll: getUsersAll,
         save: saveUser,
+        delete: deleteUserAndMessages,
         updateLastMsg: updateUserLastMessage,
+        setArchive: updateUserArchive,
         getByName: getUserByName,
         getByQuery: getUsersByQuery,
         getUnread: getUnreadMessagesOfUser

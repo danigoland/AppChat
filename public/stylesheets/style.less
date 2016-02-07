@@ -3,7 +3,8 @@
 @MenuLight: #e7e3ec;
 @MenuDarker: #797481;
 @MenuTextColor: #A6A6A7;
-@HighlightConvColor: #858690;
+@HighlightBackConvColor: #898492;
+@HighlightTextColor: #3EE5F1;
 @FontSize: 12pt;
 @AppBorderSize: 10px;
 
@@ -78,6 +79,8 @@ input[type=search] {
 
 a, a:visited, a:hover, a:active, a:link {
   color: @PrimaryColor;
+  margin: 0;
+  text-decoration: none;
 }
 
 //a:hover a:active {
@@ -175,7 +178,10 @@ ol::-webkit-scrollbar-thumb {
 }
 
 .conversation-current {
-  background-color: @HighlightConvColor;
+  background-color: @HighlightBackConvColor;
+  .conversation-name {
+    color: @HighlightTextColor;
+  }
 }
 
 .conversation-unread {
@@ -225,6 +231,7 @@ ol::-webkit-scrollbar-thumb {
 }
 
 .conversation-time {
+  color: initial;
   font-size: 8pt;
   display: block;
   margin-bottom: 5px;
@@ -261,7 +268,7 @@ ol::-webkit-scrollbar-thumb {
 
 .chat-header-title {
   text-align: center;
-  color: @PrimaryColor;
+  color: @HighlightTextColor;
   font-size: @FontSize + 4pt;
 
 }
@@ -276,7 +283,6 @@ ol::-webkit-scrollbar-thumb {
 }
 
 #search-user {
-  margin-top: 31px;
   margin-bottom: 5px;
 }
 
@@ -311,4 +317,15 @@ ol::-webkit-scrollbar-thumb {
   }
   background-color: @PrimaryColor;
 }
+
+.archived-switch-container {
+  padding: 15px;
+}
+
+.bootstrap-switch .bootstrap-switch-handle-on.bootstrap-switch-switchClass,
+.bootstrap-switch .bootstrap-switch-handle-off.bootstrap-switch-switchClass {
+  color: @HighlightTextColor;
+  background: @HighlightBackConvColor;
+}
+
 

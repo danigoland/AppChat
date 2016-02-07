@@ -152,13 +152,33 @@ function initSockets(io) {
                 });
 
                 socket.on("systemTyping", function (data) {
-                    console.log(socket.name, 'is typing to', data.to, data.state);
-                    var client = getClientById(data.to);
-                    if (client) {
-                        console.log('emitted typing to', client);
-                        io.to(client.socketId).emit('sysTyping', data.state);
-                        console.log('emitted typing to', client.socketId);
+                    function emitTyping() {
+                        console.log(socket.name, 'is typing to', data.to, data.state);
+                        var client = getClientById(data.to);
+                        if (client) {
+                            console.log('emitted typing to', client);
+                            io.to(client.socketId).emit('sysTyping', data.state);
+                            console.log('emitted typing to', client.socketId);
+                        }
                     }
+
+                    if (data.state) {
+                        if (typing === false) {
+                            typing = true;
+                            emitTyping();
+                        }
+                        clearTimeout(timeout);
+                        timeout = setTimeout(function () {
+                            typing = false;
+                            emitTyping();
+                        }, 3000);
+                    }
+                    else {
+                        typing = false;
+                        clearTimeout(timeout);
+                        emitTyping();
+                    }
+
                 });
 
                 socket.on('messageIsRead', function (id) {
@@ -175,6 +195,19 @@ function initSockets(io) {
 
                     });
                 });
+
+                socket.on("archiveConversation", function (data, callback) {
+                    var id = data.id;
+                    var status = data.status;
+                    db.users.setArchive(id, status, function (err) {
+                        if (err)
+                            callback(err);
+                        else
+                            callback(null);
+                    });
+                });
+
+
             }
             else
                 socket.disconnect();

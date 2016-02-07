@@ -73,7 +73,9 @@ input[type=search]:focus::-webkit-input-placeholder {
 }
 
 a, a:visited, a:hover, a:active, a:link {
-    color: #55b7c5
+    color: #55b7c5;
+    margin: 0;
+    text-decoration: none
 }
 
 hr {
@@ -166,7 +168,11 @@ ol::-webkit-scrollbar-thumb {
 }
 
 .conversation-current {
-    background-color: #858690
+    background-color: #898492
+}
+
+.conversation-current .conversation-name {
+    color: #3ee5f1
 }
 
 .conversation-unread {
@@ -217,6 +223,7 @@ ol::-webkit-scrollbar-thumb {
 }
 
 .conversation-time {
+    color: initial;
     font-size: 8pt;
     display: block;
     margin-bottom: 5px;
@@ -253,7 +260,7 @@ ol::-webkit-scrollbar-thumb {
 
 .chat-header-title {
     text-align: center;
-    color: #55b7c5;
+    color: #3ee5f1;
     font-size: 16pt
 }
 
@@ -265,7 +272,6 @@ ol::-webkit-scrollbar-thumb {
 }
 
 #search-user {
-    margin-top: 31px;
     margin-bottom: 5px
 }
 
@@ -301,4 +307,13 @@ ol::-webkit-scrollbar-thumb {
 
 .out .message-time {
     float: left
+}
+
+.archived-switch-container {
+    padding: 15px
+}
+
+.bootstrap-switch .bootstrap-switch-handle-on.bootstrap-switch-switchClass, .bootstrap-switch .bootstrap-switch-handle-off.bootstrap-switch-switchClass {
+    color: #3ee5f1;
+    background: #898492
 }

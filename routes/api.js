@@ -25,14 +25,39 @@ router.get('/messages/:id', function (req, res, next) {
     });
 });
 
+// GET active users
 router.get('/users', function (req, res, next) {
-    db.users.getAll(function (err, data) {
+    db.users.getByQuery({archived: false}, function (err, data) {
         if (err)
             res.send(err);
-        else
+        else {
             res.json(data);
-    })
+        }
+    });
+});
 
+
+// GET User that are archived
+router.get('/users/archived', function (req, res, next) {
+    db.users.getByQuery({archived: true}, function (err, data) {
+        if (err)
+            res.send(err);
+        else {
+            res.json(data);
+        }
+    });
+});
+
+// GET User by name
+router.get('/users/archived/:id', function (req, res, next) {
+    var id = req.params.id;
+    db.users.getByQuery({_id: id, archived: true}, function (err, data) {
+        if (err)
+            res.send(err);
+        else {
+            res.json(data);
+        }
+    });
 });
 
 // GET User by name

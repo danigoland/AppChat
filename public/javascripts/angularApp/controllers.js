@@ -1,6 +1,6 @@
-var appControllers = angular.module('appControllers', ['luegg.directives', 'angular-inview']);
+var appControllers = angular.module('appControllers', ['luegg.directives', 'angular-inview', 'ui.bootstrap.contextMenu']);
 
-function Conversation(id, name, androidVersion, deviceModel, lastMsg, unreadMsgs) {
+function Conversation(id, name, androidVersion, deviceModel, lastMsg, unreadMsgs, archived) {
     this.id = id;
     this.name = name;
     this.androidVer = androidVersion;
@@ -8,6 +8,7 @@ function Conversation(id, name, androidVersion, deviceModel, lastMsg, unreadMsgs
     this.lastMsg = lastMsg;
     this.unreadMessages = unreadMsgs;
     this.isTyping = false;
+    this.archived = archived;
 
 }  // conv obj constructor.
 
@@ -34,7 +35,7 @@ appControllers.controller('mainCTRL', ['$scope', '$http', 'socket', 'currentConv
                     var user = users[0];
                     console.log('the user isnt in the convs');
                     $scope.conversations.push(new Conversation(user._id, user.name, user.androidVersion,
-                        user.deviceModel, user.lastMessage, user.unreadMessages));
+                        user.deviceModel, user.lastMessage, user.unreadMessages, user.archived));
                 });
     }
 
@@ -42,6 +43,14 @@ appControllers.controller('mainCTRL', ['$scope', '$http', 'socket', 'currentConv
     $scope.conversations = [];
     $scope.messages = [];
     $scope.messageInput = 'test';
+
+    function getClientIndexById(id) {
+        for (var i in $scope.conversations) {
+            if ($scope.conversations[i].id == id) {
+                return i;
+            }
+        }
+    }
 
     socket.emit('login', {name: 'System'}, function () {
     });
@@ -91,32 +100,6 @@ appControllers.controller('mainCTRL', ['$scope', '$http', 'socket', 'currentConv
         console.log('socket disconnected. reason -', reason);
     });
 
-    function getClientIndexById(id) {
-        for (var i in $scope.conversations) {
-            if ($scope.conversations[i].id == id) {
-                return i;
-            }
-        }
-    }
-
-    $http.get('/api/users')
-        .success(function (users) {
-            for (var i in users) {
-                var user = users[i];
-                $scope.conversations.push(new Conversation(user._id, user.name, user.androidVersion,
-                    user.deviceModel, user.lastMessage, user.unreadMessages));
-            }
-            $scope.currentUser = '';
-        });
-    //
-    //$http.get('/api/messages')
-    //    .success(function (messages) {
-    //        for (var i in messages) {
-    //            loadMessage(messages[i]);
-    //        }
-    //    });
-
-
     $scope.changeUser = function () {
         //$scope.current = name;
         $('#messageInput').focus();
@@ -125,17 +108,66 @@ appControllers.controller('mainCTRL', ['$scope', '$http', 'socket', 'currentConv
 
 }]);
 
+appControllers.controller('conversationsCTRL', ['$scope', '$http', 'socket', function ($scope, $http, socket) {
+
+    function findConvByName(name) {
+        var convs = $scope.$parent.conversations;
+        for (var i = 0; i < convs.length; i++) {
+            if (convs[i].name == name)
+                return i;
+        }
+    }
+
+    $scope.menuOptions = [
+        ['Archive / Unarchive', function ($itemScope) {
+            var name = $itemScope.conversation.name;
+            var id = $itemScope.conversation.id;
+            var status = $itemScope.conversation.archived;
+            var index = findConvByName(name);
+            var eventData = {id: id, status: !status};
+            socket.emit('archiveConversation', eventData, function (err) {
+                if (!err)
+                    $scope.$parent.conversations.splice(index, 1);
+            });
+        }],
+        null, // Dividier
+        ['Delete', function ($itemScope, $event) {
+            var name = $itemScope.conversation.name;
+            if (confirm('Are you sure you want to permanently delete ' + name + '? (cannot undo)')) {
+                var index = findConvByName(name);
+                $scope.$parent.conversations.splice(index, 1);
+            }
+        }]
+    ];
+    $scope.updateConversations = function (isArchived) {
+        $scope.$parent.conversations = [];
+        var archived = '';
+        if (isArchived)
+            archived = 'archived';
+        $http.get('/api/users/' + archived)
+            .success(function (users) {
+                console.log(users);
+                for (var i in users) {
+                    var user = users[i];
+                    $scope.$parent.conversations.push(new Conversation(user._id, user.name, user.androidVersion,
+                        user.deviceModel, user.lastMessage, user.unreadMessages, user.archived));
+                }
+            });
+    };
+    $scope.updateConversations(false);
+}]);
+
 appControllers.controller('conversationCTRL', ['$scope', '$routeParams', '$http', 'socket', 'currentConversation',
     function ($scope, $routeParams, $http, socket, currentConversation) {
         document.title = "Angular App";
         var isExist = false;
-        for (var i in $scope.conversations) {
-            if ($scope.conversations[i].name == $routeParams.user) {
+        var conversations = $scope.$$prevSibling.$$prevSibling.filteredConversation;
+        for (var i in conversations) {
+            if (conversations[i].name == $routeParams.user) {
                 if ($routeParams.user)
-                    document.title = "Angular App - " + $scope.conversations[i].name;
+                    document.title = "Angular App - " + conversations[i].name;
                 isExist = true;
-                $scope.$parent.currentUser = $scope.conversations[i];
-                //console.log($scope.conversations[i]);
+                $scope.$parent.currentUser = conversations[i];
                 currentConversation.setCurrent($scope.$parent.currentUser);
                 $http.get('/api/messages/' + $scope.$parent.currentUser.id)
                     .success(function (msgs) {
@@ -151,7 +183,7 @@ appControllers.controller('conversationCTRL', ['$scope', '$routeParams', '$http'
         }
 
         if (!isExist) {
-            topConversation = $scope.currentConvView[0];
+            topConversation = conversations[0];
             if (topConversation)
                 window.location = '#/' + topConversation.name;
         }
@@ -200,7 +232,7 @@ appControllers.controller('keyboardCTRL', ['$scope', 'socket', 'currentConversat
 
     $scope.keyboardHandler = function (e) {
         if (currentConversation.getCurrent())
-        typingTo = currentConversation.getCurrent().id;
+            typingTo = currentConversation.getCurrent().id;
         if (typingTo) {
             if (e.which !== 13 || !e.shiftKey) {
                 if (typing === false && $("#keyboard-message-input").is(":focus")) {

@@ -1,11 +1,13 @@
-<div class="conversation" id="{{conversation.id}}" ng-click="changeUser()"
+<a href="#/{{conversation.name}}" ng-click="changeUser()" context-menu="menuOptions">
+    <div class="conversation" id="{{conversation.id}}"
      ng-class="(currentUser.name == conversation.name) ? 'conversation-current conversation' : 'conversation'">
     <div class="conversation-time">{{conversation.lastMsg.time | date:'HH:mm'}}</div>
-    <a class="conversation-name" href="#/{{conversation.name}}"><span>{{conversation.name}}</span>
-        <span ng-if="conversation.isTyping"> | is typing..</span></a>
+        <span class="conversation-name">{{conversation.name}}</span>
+        <span ng-if="conversation.isTyping"> | is typing..</span>
     <div dir="auto" class="conversation-body">{{conversation.lastMsg.body}}</div>
     <div ng-if="conversation.unreadMessages.length > 0" class="conversation-unread">
         {{conversation.unreadMessages.length}}
     </div>
 </div>
+</a>
 <hr class="conversation-divide">
